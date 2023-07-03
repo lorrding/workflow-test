@@ -104,7 +104,7 @@ jobs:
                 echo "File $file is invalid"
                 if [[ $fillColor == false ]]; then
                   echo "" >> issues.txt
-                  echo "### **Incorrect fill value**. No attribut \`fill\` with value \`none\` were found in file(s):  " >> issues.txt
+                  echo "### **Incorrect fill value**. No attribute \`fill\` with value \`none\` was found in file(s):  " >> issues.txt
                   echo "*Icons must be outlined (not filled)*  " >> issues.txt
                   echo "*If your icon does not contain any \`<path>\` (only \`<circle>\` or \`<rect>\`), you can ignore this warning.*" >> issues.txt
                   fillColor=true
@@ -125,7 +125,7 @@ jobs:
                 echo "File $file is invalid"
                 if [[ $strokeLineJoin == false ]]; then
                   echo "" >> issues.txt
-                  echo "### **Incorrect corner radius**. No attribut \`stroke-linejoin\` with value \`round\` were found. Icons must have a rounded corners in file(s):  " >> issues.txt
+                  echo "### **Incorrect corner radius**. No attribute \`stroke-linejoin\` with value \`round\` was found. Icons must have a rounded corners in file(s):  " >> issues.txt
                   echo "*If your icon does not contain any \`<path>\` (only \`<circle>\` or \`<rect>\`), you can ignore this warning.*" >> issues.txt
                   strokeLineJoin=true
                 fi
