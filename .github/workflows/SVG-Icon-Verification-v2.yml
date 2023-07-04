@@ -1,0 +1,60 @@
+name: SVG Icon Verification
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  check-icons:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get list of SVGs
+        id: get-change
+        run: |
+          echo "::set-output name=svg::$(git diff --name-only --diff-filter=d ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep .svg$)"
+
+      - name: Check SVGs
+        id: check-svg
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          issues_file="issues.txt"
+          touch $issues_file
+          IFS=$'\n' read -d '' -r -a files <<< "${{ steps.get-change.outputs.svg }}"
+          for file in "${files[@]}"; do
+            while IFS= read -r line || [ -n "$line" ]; do
+              if [[ ! $line == *"<svg"*"viewBox=\"0 0 192 192\""* ]]; then
+                echo "File $file is invalid"
+                echo "$file:$line" >> $issues_file
+              fi
+            done < "$file"
+          done
+          echo "::set-output name=issues_file::$issues_file"
+
+      - name: Comment on PR
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const fs = require('fs');
+            const issuePath = "${{ steps.check-svg.outputs.issues_file }}";
+            const issues = fs.readFileSync(issuePath, 'utf8').split('\n').filter(Boolean);
+            for (const issue of issues) {
+              const [file, line] = issue.split(':');
+              const message = `Incorrect viewbox size in file ${file} on line ${line}. Viewbox should be '0 0 192 192'`;
+              await github.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                commit_id: context.sha,
+                event: 'COMMENT',
+                body: message,
+                path: file,
+                position: parseInt(line, 10),
+              });
+            }
