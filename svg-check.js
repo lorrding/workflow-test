@@ -49,27 +49,28 @@ function validateSvg(file) {
     let hasError = false;
     let errors = [];
 
-
     try {
         const svg = fs.readFileSync(file, 'utf8');
 
         rules.forEach(rule => {
             rule.rule = Array.isArray(rule.rule)? rule.rule : [rule.rule];
-            const isValid = rule.rule.some(r => svg.includes(r));
-            if (!isValid) {
-                hasError = true;
-                errors.push(`- **${rule.error}**. ${rule.description}.\n`);
-                if (rule.protip) {
-                    errors.push(`*${rule.protip}.*`);
-                }
+            if(!rule.rule.some(r => svg.includes(r))) {
+                rule.affectedFiles = rule.affectedFiles || [];
+                rule.affectedFiles.push(file);
             }
+            // if (!isValid) {
+            //     hasError = true;
+            //     errors.push(`- **${rule.error}**. ${rule.description}.\n`);
+            //     if (rule.protip) {
+            //         errors.push(`*${rule.protip}.*`);
+            //     }
+            // }
         });
     } catch (err) {
         console.error(`File ${file} does not exist or is not readable`);
         return [];
     }
     console.log(`${file} tested`);
-    return hasError? errors : [];
 }
 
 // files should be process.argv minus 0 and 1
@@ -83,13 +84,33 @@ if (files.length === 0) {
 
 files.forEach(file => {
     const errors = validateSvg(file);
-
-    if (errors.length > 0) {
-        const errorFile = path.join(process.cwd(), 'errors.md');
-        try {
-            fs.appendFileSync(errorFile, `# ${file}:\n${errors.join('\n')}\n`);
-        } catch (err) {
-            console.log(`Error while writing errors to ${errorFile}`);
-        }
-    }
 });
+
+// get each rules with affected files
+const rulesWithAffectedFiles = rules.filter(rule => rule.affectedFiles);
+if (rulesWithAffectedFiles.length > 0) {
+    const errorFile = path.join(process.cwd(), 'errors.md');
+    // for each rule, write the rule name and the affected files
+    try {
+        fs.appendFileSync(errorFile, `# Thanks for contributing! The following mistakes have been detected in your pull request:\n`);
+        rulesWithAffectedFiles.forEach(rule => {
+            fs.appendFileSync(errorFile, `- ## ${rule.name}:\n`);
+            fs.appendFileSync(errorFile, `\t${rule.description}.  \n`);
+            fs.appendFileSync(errorFile, `\tAffected files:\n`);
+            rule.affectedFiles.forEach(affectedFile => {
+                fs.appendFileSync(errorFile, `\t- ${affectedFile}\n`);
+            });
+            if (rule.protip) fs.appendFileSync(errorFile, `\n\t*${rule.protip}.*\n`);
+        });
+        fs.appendFileSync(errorFile, `\n### Please fix these mistakes and submit a new pull request. Thank you! See the [Contributing guide](https://github.com/LawnchairLauncher/lawnicons/blob/develop/.github/CONTRIBUTING.md) for more details.`);
+    } catch (err) {
+        console.log(`Error while writing errors to ${errorFile}`);
+    }
+} else {
+    try {
+        const errorFile = path.join(process.cwd(), 'errors.md');
+        fs.appendFileSync(errorFile, `# Thanks for contributing! No mistakes have been found in your pull request. Kindly wait for a reviewer to validate your contribution.`);
+    } catch (err) {
+        console.log(`Error while writing errors to ${errorFile}`);
+    }
+}
