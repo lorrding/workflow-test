@@ -45,7 +45,6 @@ const rules = [
     }
 ];
 
-// Your validation logic here
 function validateSvg(file) {
     let hasError = false;
     let errors = [];
@@ -66,26 +65,31 @@ function validateSvg(file) {
             }
         });
     } catch (err) {
-        console.log(`File ${file} does not exist or is not readable`);
-        process.exit(0);
+        console.error(`File ${file} does not exist or is not readable`);
+        return [];
     }
-
+    console.log(`${file} tested`);
     return hasError? errors : [];
 }
 
-const file = process.argv[2];
-if (!file) {
+// files should be process.argv minus 0 and 1
+const files = process.argv.slice(2);
+console.log(`${files}`)
+
+if (files.length === 0) {
     console.log('No file path provided');
     process.exit(0);
 }
 
-const errors = validateSvg(file);
+files.forEach(file => {
+    const errors = validateSvg(file);
 
-if (errors.length > 0) {
-    const errorFile = path.join(process.cwd(), 'errors.md');
-    try {
-        fs.appendFileSync(errorFile, `# ${file}:\n${errors.join('\n')}\n`);
-    } catch (err) {
-        console.log(`Error while writing errors to ${errorFile}`);
+    if (errors.length > 0) {
+        const errorFile = path.join(process.cwd(), 'errors.md');
+        try {
+            fs.appendFileSync(errorFile, `# ${file}:\n${errors.join('\n')}\n`);
+        } catch (err) {
+            console.log(`Error while writing errors to ${errorFile}`);
+        }
     }
-}
+});
