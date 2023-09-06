@@ -20,15 +20,16 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: lots0logs/gh-action-get-changed-files@2.2.2
+        uses: jitterbit/get-changed-files@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run JS action on SVG files
         run: |
-          for file in ${{ steps.changed-files.outputs.added_modified }}; do
-            if [[ $file == *.svg ]]; then
-              node svg-check.js $file
+          mapfile -d ',' -t added_modified_files < <(printf '%s,' '${{ steps.changed-files.outputs.added_modified }}')
+          for added_modified_file in "${added_modified_files[@]}"; do
+            if [[ ${added_modified_file} == *.svg ]]; then
+              node svg-check.js ${added_modified_file}
             fi
           done
 
