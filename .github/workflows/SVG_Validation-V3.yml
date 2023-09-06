@@ -6,30 +6,38 @@ on:
       - '**.svg'
 
 jobs:
+  changedfiles:
+    runs-on: ubuntu-latest
+    outputs:
+      all: ${{ steps.changes.outputs.all}}
+      ts: ${{ steps.changes.outputs.ts }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Get changed files
+        id: changes
+        run: |
+          echo "::set-output name=all::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)"
+          echo "::set-output name=svg::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .svg$ | xargs)"
+
   validate:
     runs-on: ubuntu-latest
-
+    needs: changedfiles
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-
-      - name: Get changed files
-        id: changed-files
-        uses: jitterbit/get-changed-files@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
+      
+      - name: echo changed files
+        run: echo ${{needs.changedfiles.outputs.svg}}
+      
       - name: Run JS action on SVG files
         run: |
-          mapfile -d ',' -t added_modified_files < <(printf '%s,' '${{ steps.changed-files.outputs.added_modified }}')
-          for added_modified_file in "${added_modified_files[@]}"; do
-            if [[ ${added_modified_file} == *.svg ]]; then
-              node svg-check.js ${added_modified_file}
+          for file in "${{needs.changedfiles.outputs.svg}}"; do
+            if [[ $file == *.svg ]]; then
+              node svg-check.js $file
             fi
           done
 
