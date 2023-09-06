@@ -1,0 +1,51 @@
+name: SVG Validation
+
+on:
+  pull_request:
+    paths:
+      - '**.svg'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Get changed files
+        id: changed-files
+        uses: lots0logs/gh-action-get-changed-files@2.1.4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run JS action on SVG files
+        run: |
+          for file in ${{ steps.changed-files.outputs.added_modified }}; do
+            if [[ $file == *.svg ]]; then
+              node svg-check.js $file
+            fi
+          done
+
+      - name: Post comment
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const fs = require('fs');
+            const errorFile = 'errors.md';
+            if (fs.existsSync(errorFile)) {
+              const errors = fs.readFileSync(errorFile, 'utf8');
+              const issue_number = context.issue.number;
+              github.issues.createComment({
+                issue_number: issue_number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: errors
+              });
+            }
