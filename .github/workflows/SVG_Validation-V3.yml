@@ -21,7 +21,10 @@ jobs:
         id: changes
         run: |
           echo "{all}={git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs}" >> $GITHUB_OUTPUT
-          echo "{svg}={git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .svg$ | xargs}" >> $GITHUB_OUTPUT
+          echo "svg=git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .svg$ | xargs" >> $GITHUB_OUTPUT
+      
+      - name: test echo
+        run: echo ${{steps.changedfiles.outputs.all}}
 
   validate:
     runs-on: ubuntu-latest
@@ -33,10 +36,16 @@ jobs:
           node-version: '18'
       
       - name: echo changed files
-        run: echo ${{steps.changes.outputs.svg}}
+        run: echo ${{steps.changedfiles.outputs.svg}}
       
       - name: echo all changed files
-        run: echo ${{steps.changes.outputs.all}}
+        run: echo ${{steps.changedfiles.outputs.all}}
+
+      - name: echo needs
+        run: echo ${{needs.changedfiles.outputs.svg}}
+      
+      - name: echo needs.outputs
+        run: echo ${{needs.changedfiles.outputs}}
 
       - name: Run JS action on SVG files
         run: |
