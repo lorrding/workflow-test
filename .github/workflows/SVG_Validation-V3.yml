@@ -25,7 +25,7 @@ jobs:
           echo git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .svg$ | xargs
       
       - name: test echo
-        run: echo ${{changedfiles.outputs.all}}
+        run: echo ${{steps.changedfiles.outputs.all}}
 
   validate:
     runs-on: ubuntu-latest
