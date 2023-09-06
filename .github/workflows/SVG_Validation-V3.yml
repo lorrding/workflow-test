@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       all: ${{ steps.changes.outputs.all}}
-      ts: ${{ steps.changes.outputs.ts }}
+      svg: ${{ steps.changes.outputs.svg }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,8 +33,11 @@ jobs:
           node-version: '18'
       
       - name: echo changed files
-        run: echo ${{needs.changedfiles.outputs.svg}}
+        run: echo ${{steps.changes.outputs.svg}}
       
+      - name: echo all changed files
+        run: echo ${{steps.changes.outputs.all}}
+
       - name: Run JS action on SVG files
         run: |
           for file in "${{needs.changedfiles.outputs.svg}}"; do
