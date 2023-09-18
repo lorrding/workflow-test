@@ -1,5 +1,8 @@
 name: SVG Validation
 
+env:
+  issue: false
+
 on:
   pull_request:
     paths:
@@ -39,4 +42,19 @@ jobs:
                 repo: context.repo.repo,
                 body: errors
               });
+              $issue = true;
             }
+
+      - name: add issue label
+        use: actions-ecosystem/action-add-labels@v1
+        if: $issue == true
+        with:
+          labels: |
+            changes requested
+
+      - name: add review label
+        use: actions-ecosystem/action-add-labels@v1
+        if: $issue == false
+        with:
+          labels: |
+            needs review
