@@ -46,14 +46,14 @@ jobs:
             }
 
       - name: add issue label
-        use: actions-ecosystem/action-add-labels@v1
+        uses: actions-ecosystem/action-add-labels@v1
         if: $issue == true
         with:
           labels: |
             changes requested
 
       - name: add review label
-        use: actions-ecosystem/action-add-labels@v1
+        uses: actions-ecosystem/action-add-labels@v1
         if: $issue == false
         with:
           labels: |
