@@ -45,14 +45,20 @@ jobs:
               console.log('::set-env name=issue::true');
             }
 
-      - name: Add issue label
-        if: env.issue == 'true'
+      - name: Add label
         uses: actions-ecosystem/action-add-labels@v1
-        with:
-          labels: 'changes requested'
-
-      - name: Add review label
-        if: env.issue == 'false'
-        uses: actions-ecosystem/action-add-labels@v1
-        with:
-          labels: 'needs review'
+        run: |
+          if [ -f "issue.md" ]; then
+            echo "::set-output name=labels::changes requested"
+          else
+            echo "::set-output name=labels::needs review"
+    
+      - name: Remove label
+        uses: ctions-ecosystem/action-remove-labels@v1
+        run: |
+          if [ -f "issue.md" ]; then
+            echo "::set-output name=labels::needs review"
+          else
+            echo "::set-output name=labels::changes requested"
+      
+      
