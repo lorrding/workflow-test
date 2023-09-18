@@ -45,16 +45,16 @@ jobs:
               $issue = true;
             }
 
-      - name: add issue label
+      - name: Add issue label
+        if: env.issue == 'true'
         uses: actions-ecosystem/action-add-labels@v1
-        if: $issue == true
         with:
-          labels: |
-            changes requested
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          labels: 'changes requested'
 
-      - name: add review label
+      - name: Add review label
+        if: env.issue == 'false'
         uses: actions-ecosystem/action-add-labels@v1
-        if: $issue == false
         with:
-          labels: |
-            needs review
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          labels: 'needs review'
