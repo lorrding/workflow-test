@@ -42,19 +42,17 @@ jobs:
                 repo: context.repo.repo,
                 body: errors
               });
-              $issue = true;
+              console.log('::set-env name=issue::true');
             }
 
       - name: Add issue label
         if: env.issue == 'true'
         uses: actions-ecosystem/action-add-labels@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           labels: 'changes requested'
 
       - name: Add review label
         if: env.issue == 'false'
         uses: actions-ecosystem/action-add-labels@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           labels: 'needs review'
